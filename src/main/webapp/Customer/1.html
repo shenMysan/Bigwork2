@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Insert title here</title>
+    <!-- 引入百度地图api文件 -->
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=cD9hTRfvBAmVCdp0wTTEsDs64lSmvLUY"></script>
+    <!-- 引入jquery -->
+    <script src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+
+    <style type="text/css">
+        html{height:100%}
+        body{height:100%;margin:0px;padding:0px}
+
+        #map{
+
+            height:100%;
+
+        }
+    </style>
+</head>
+<body>
+
+
+起始位置：<input type="text" id="startwhere" name="beginPos">
+结束位置：<input type="text"    id="finalywhere" name="endPos">
+<input type="button" name="getPoint" value="获取位置">
+距离为：<input type="text" name="distance" readonly="readonly">
+价格：<input type="text" name="price" readonly="readonly">
+<input type="button" name="getOrder" value="生成订单">
+<span id="msg">正在获取当前位置...</span>
+<!--地图容器-->
+<div id="map">
+
+</div>
+<div id="acvity_pre" style="width: 450px; height: 200px; margin-left:auto; margin-right:auto; margin-top:200px; visibility:hidden; background: #F0F0F0; border:1px solid #00DB00; z-index:9999">
+    <div style="width: 450px; height: 30px; background:#00DB00; line-height:30px;text-align: center;"><b>准备中</b></div>
+    <br /><br />
+    <div><p style="margin-left:50px">寻找车辆中...   还需稍候<span id="reboot_pre_time">30</span> 秒</p></div>
+    <br />
+    <div><button type="button" style="width:70px; height:30px; margin-left:340px" οnclick="reboot_cancel()">取消</button></div>
+</div>
+<div id="acvity_ing" style="width: 450px; height: 150px;  margin-left:auto; margin-right:auto; margin-top:-150px; visibility: hidden; background: #F0F0F0; border:1px solid #00DB00">
+    <div style="width: 450px; height: 30px; background:#00DB00; line-height:30px;text-align: center;"><b>进行中</b></div>
+    <br />
+    <div><p style="margin-left:40px">司机正在努力前往...   还需稍候 <span id="reboot_ing_time">3</span> 秒</p></div>
+    <br />
+    <div  id="progress_reboot" style="margin-left:40px;color:#00DB00;font-family:Arial;font-weight:bold;height:18px">|</div>
+    <br />
+</div>
+
+</body>
+<script type="text/javascript">
+    $(function() {
+        //给获取位置按钮注册事件
+        $("input[name='getPoint']").bind('click', function () {
+
+            //获取起始位置
+            var beginPos = $("input[name='beginPos']").val();
+            //获取结束位置
+            var endPos = $("input[name='endPos']").val();
+            if (beginPos != '' && endPos != '') {
+                loadMap(beginPos, endPos);
+
+            } else {
+                alert('起始位置或结束位置未填写')
+            }
+        });
+        //ip定位，精度为城市级别
+        function myFun(result){
+            var cityName = result.name;
+            $("#msg").html("当前位置："+cityName);
+        }
+        var myCity = new BMap.LocalCity();
+        myCity.get(myFun);
+
+
+
+
+
+
+    });
+    //加载地图函数
+    var  distance;
+    var price;
+    var pois=new Array();
+     var     id=getUrlParam("id");
+
+    var  lng_a;
+    var  lat_a;
+    var  lng_b;
+    var  lat_b;
+
+
+    function loadMap(beginPos,endPos){
+        //创建一个地图实例
+        var map = new BMap.Map("map");
+        //添加平移缩放控件，PC端默认位于地图左上方，它包含控制地图的平移和缩放的功能
+        map.addControl(new BMap.NavigationControl());
+        //添加比例尺
+        map.addControl(new BMap.ScaleControl());
+        //开启鼠标滚轮缩放
+        map.enableScrollWheelZoom();
+
+
+        //创建本地搜索
+        var localSearch = new BMap.LocalSearch(map);
+        //允许自动调节窗体大小
+        localSearch.enableAutoViewport();
+
+        //设置搜索结束时的回调函数      api
+
+        localSearch.setSearchCompleteCallback(function (searchResult,getVar) {
+            for(var i=0;i<=1;i++){
+
+                //获取搜索结果
+                var poi = searchResult[i].getPoi(0);
+
+
+                //创建标注
+                var marker = new BMap.Marker(poi.point);
+                //存储点
+                pois.push(poi.point);
+                //设置放大级别，范围1-20
+                map.centerAndZoom(poi.point,15);
+                //添加覆盖物
+                map.addOverlay(marker);
+            }
+            //创建两点间的折线
+            var polyline = new BMap.Polyline(
+                [
+                    pois[0],
+                    pois[1]
+                ],
+                {strokeColor:"blue", strokeWeight:6, strokeOpacity:0.5}
+            );
+
+
+            //添加折线
+            map.addOverlay(polyline);
+
+
+
+            //计算两点之间距离
+            distance =((map.getDistance(pois[0],pois[1]))/1000).toFixed(2);//保留两位小数
+            price =(5+(distance-2)*2) .toFixed(2);                                                                  //二公里起步价5元，后续每公里2元；
+
+            $("input[name='distance']").val(distance+'公里');
+            $("input[name='price']").val(price+'元');
+
+
+        });                        //因为回调函数 获取返回的值太麻烦，嵌套回调函数不会。使用重新获取点坐标
+        //搜索起始位置和结束位置
+        localSearch.search([beginPos,endPos]);
+
+
+    }
+
+
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if(r != null){
+            return decodeURI(r[2]);
+        }
+        return "";//如果此处只写return;则返回的是undefined
+    }
+
+
+
+
+
+    $(function() {
+        //给获取位置按钮注册事件
+        $("input[name='getOrder']").bind('click', function () {
+
+            var myGeo = new BMap.Geocoder();
+          var  start  = document.getElementById('startwhere').value
+            var  final  = document.getElementById('finalywhere').value
+            // 将地址解析结果显示在地图上，并调整地图视野
+            myGeo.getPoint(start, function(point){undefined
+                if (point) {undefined
+//经度
+                            lng_a= point.lng;
+                    //纬度
+                        lat_a = point.lat;
+
+                }
+                myGeo.getPoint(final, function(point){undefined
+                    if (point) {undefined
+//经度
+                        lng_b= point.lng;
+                        //纬度
+                        lat_b= point.lat;
+
+                    }
+
+                    window.location.href = "2.html?id="+id+"&&price"+price+"&&distance="+distance+"&&lng_a="+lng_a+"&&lat_a="+lat_a+"&&lng_b="+lng_b+"&&lat_b="+lat_b;
+
+                    //回调嵌套
+                },"广州");
+            },"广州");
+
+
+
+
+
+
+
+
+        })
+    });
+
+
+</script>
+
+
+
+
+</html>

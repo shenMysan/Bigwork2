@@ -4,6 +4,10 @@
     <option name="state">
       <map>
         <entry key="file://$PROJECT_DIR$/src/main/webapp/1.html" value="file://$PROJECT_DIR$/src/main/webapp" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/Customer/1.html" value="file://$PROJECT_DIR$/src/main/webapp/Customer" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/Driver/1.html" value="file://$PROJECT_DIR$/src/main/webapp/Driver" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/Driver/DriverBegin.html" value="file://$PROJECT_DIR$/src/main/webapp/Driver" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/Root/4.html" value="file://$PROJECT_DIR$/src/main/webapp/Root" />
         <entry key="file://$PROJECT_DIR$/src/main/webapp/index.jsp" value="file://$PROJECT_DIR$/src/main/webapp" />
       </map>
     </option>

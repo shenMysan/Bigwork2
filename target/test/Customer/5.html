@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+    <title></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        td{
+            border:1px solid;
+        }
+        th{
+            border:2px solid red;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>个人信息</th>
+
+
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<script>
+    //准备数据
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if(r != null){
+            return decodeURI(r[2]);
+        }
+        return "";//如果此处只写return;则返回的是undefined
+    }
+    window.onload = setTimeout(getOrder,1000);
+    var   id=getUrlParam("id");
+    var type =1;
+    function  getOrder() {
+
+        $.ajax({
+            type:'POST' ,
+            data:{
+                "usertype" :type,
+                "id": id,
+
+            },
+
+            url:"/getInfor",
+            dataType:'JSON',
+            success :function (data) {
+                // var keys = Object.keys(data);
+                var value2 = data["info"];
+                str="";
+                for(var i=0; i<value2.length; i++)
+                {
+
+                    str+='<tr>'+value2[i].id+'</tr>'+'<tr>'+ value2[i].name+'</tr>'+'<tr>'+  value2[i].pw+'</tr>' ;
+                }
+                document.querySelector('tbody').innerHTML=str
+                //js给表格设置样式
+                document.querySelector('table').width='300px'
+                document.querySelector('table').height='100px'
+                document.querySelector('table').style.borderCollapse='collapse'
+                document.querySelector('table').style.textAlign='center'
+
+
+            },
+            error :function () {
+                // alert("服务器故障,请重新尝试");
+            },
+        });
+
+
+
+    }
+
+    //创建行
+
+    //将创建好的内容放入tbody标签内
+
+
+</script>
+</body>
+</html>

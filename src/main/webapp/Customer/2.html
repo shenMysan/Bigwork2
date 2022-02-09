@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+</head>
+<body>
+<div id="reboot_pre" style="width: 450px; height: 200px; margin-left:auto; margin-right:auto; margin-top:200px; visibility:hidden; background: #F0F0F0; border:1px solid #00DB00; z-index:9999">
+    <div style="width: 450px; height: 30px; background:#00DB00; line-height:30px;text-align: center;"><b>准备中</b></div>
+    <br /><br />
+    <div><p style="margin-left:50px">正在努力为您寻找车辆...   还需稍候 <span id="reboot_pre_time">30</span> 秒</p></div>
+</div>
+<!------------------  重启操作 准备弹窗 --------------->
+<div id="reboot_pro" style="width: 450px; height: 150px;  margin-left:auto; margin-right:auto; margin-top:-150px; visibility: hidden; background: #F0F0F0; border:1px solid #00DB00">
+    <div style="width: 450px; height: 30px; background:#00DB00; line-height:30px;text-align: center;"><b>进行中</b></div>
+    <br />
+    <div><p style="margin-left:40px">正在搜索扩大范围...   还需稍候 <span id="reboot_ing_time">60</span> 秒</p></div>
+    <br />
+    <div  id="progress_reboot" style="margin-left:40px;color:#00DB00;font-family:Arial;font-weight:bold;height:18px">|</div>
+    <br />
+</div>
+
+
+</body>
+<script type="text/javascript">
+
+    var cancel_flag = 0;
+    var already = 0;
+
+    var      distance =getUrlParam(" distance");
+    var       price=getUrlParam("price");
+    var               id=getUrlParam("id");
+    var  lng_a       =getUrlParam("lng_a");
+    var  lat_a       =getUrlParam("lat_a");
+    var  lng_b       =getUrlParam("lng_b");
+    var  lat_b       =getUrlParam("lat_b");
+
+    /* 网页一加载就执行的操作 */
+    window.onload = setTimeout(reboot,1000);
+
+
+
+    function reboot(){
+
+
+
+        if(confirm("是否确认打车？")){
+            getCAR();
+            document.getElementById("reboot_pre_time").innerHTML = 40;
+            document.getElementById("reboot_ing_time").innerHTML = 60;
+
+
+            download_flag = 0;
+            cancel_flag = 0;
+            already = 0;
+
+            setTimeout("showDiv('reboot_pre')",500);
+            delayPre_reboot("reboot_pre_time");
+
+        }
+    }
+
+    function delayPre_reboot(str) {
+        if(!cancel_flag){
+            var delay = document.getElementById(str).innerHTML;
+            if(delay > 0) {
+                delay--;
+                document.getElementById(str).innerHTML = delay;
+
+                setTimeout("delayPre_reboot('reboot_pre_time')", 1000);
+            } else {
+                hideDiv("reboot_pre");
+                setTimeout("showDiv('reboot_pro')",500);
+                delayDo_reboot("reboot_ing_time");
+
+
+            }
+        }
+    }
+    function delayDo_reboot(str){
+
+        var delay = document.getElementById(str).innerHTML;
+        if(delay > 0) {
+            delay--;
+            document.getElementById(str).innerHTML = delay;
+            setTimeout("delayDo_reboot('reboot_ing_time')", 1000);
+        } else {
+            hideDiv("reboot_pro");
+
+        }
+    }
+
+
+    /!* 显示弹窗 *!/
+    function showDiv (str){
+        document.getElementById(str).style.visibility = "visible";
+    }
+    /!* 隐藏弹窗 *!/
+    function hideDiv (str){
+        document.getElementById(str).style.visibility = "hidden";
+    }
+
+
+    function  getCAR() {
+
+        $.ajax({
+            type:'POST' ,
+            data:{
+                " distance"     :    distance,
+                "price"       :          price,
+                "id"          :             id,
+                "lng_a"            :    lng_a,
+                "lat_a"           :     lat_a,
+                "lng_b"         :       lng_b,
+                "lat_b"         :       lat_b,
+
+            },
+
+            url:"/FindCar",
+            dataType:'JSON',
+            success :function (data) {
+                // var keys = Object.keys(data);
+                var value2 = data["infor"];
+                var ok=false;
+                if (typeof(data["ok"])!="undefined"){
+                    ok = data["ok"];
+                }
+                if(ok){
+                    hideDiv("reboot_pre");
+                    hideDiv("reboot_pro");
+                    alert(value2);
+                    alert("你已经上车");
+                    var url= data["url"];
+                    tiaozhuang(url);
+                }else {
+                    alert(value2);
+                }
+
+
+
+            },
+            error :function () {
+                alert("服务器故障,请重新尝试");
+            },
+        });
+
+
+
+    }
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if(r != null){
+            return decodeURI(r[2]);
+        }
+        return "";//如果此处只写return;则返回的是undefined
+    }
+function  tiaozhuang(url){
+    window.location.href = url;
+}
+</script>
+</html>
+

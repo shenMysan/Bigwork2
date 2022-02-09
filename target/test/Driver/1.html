@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Hello, World</title>
+    <style type="text/css">
+        html{height:100%}
+        body{height:100%;margin:0px;padding:0px}
+        #map{height:100%}
+
+    </style>
+    <script src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=cD9hTRfvBAmVCdp0wTTEsDs64lSmvLUY"></script>
+
+</head>
+
+<body>
+
+<div id="map">
+</div>
+
+</body>
+<script type="text/javascript">
+    var   P =[];
+    var point;
+    var marker;
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if(r != null){
+            return decodeURI(r[2]);
+        }
+        return "";//如果此处只写return;则返回的是undefined
+    }
+    var id=getUrlParam("id");
+    // 写ajax请求，调用TestController中的方法
+    function  getCurrentPosition() {
+
+
+
+        jQuery.ajax({
+            type:'POST' ,
+            data:{
+                "id":id,
+            },
+          content:'application/json',
+            url:"/returnPoint",
+            dataType:'text',
+             success :function (data) {
+
+                  P = data.split(",");
+
+
+            },
+            error :function () {
+                alert("error");
+            },
+        });
+
+
+        return P;
+    }
+
+</script>
+
+<script>
+    var timer;
+    //利用jq监测下拉菜单的状态
+    $(document).ready(function(){
+
+
+        timer = setInterval(changeMarkerPosition,5000);
+        //每隔5秒刷新一次点的坐标
+
+    });
+
+</script>
+
+<script type="text/javascript">
+    var map = new BMap.Map("map");//地图的实例
+
+
+
+
+
+    //要把点和marker设置成全局变量试一试
+
+
+    var  carIcon = new BMap.Icon("http://lbsyun.baidu.com/jsdemo/img/car.png", new BMap.Size(300,157));//创建一个小车的图标
+
+    //让程序停止200毫秒之后在做function中的事情
+    setTimeout(function () {
+        // 创建地图实例            23.407   13.228;
+        point = new BMap.Point(113.228,23.407  );//这里已经能得到，就不打印了
+
+        // 初始化地图
+        map.centerAndZoom(point, 13);
+        map.enableScrollWheelZoom(true);
+
+        map.enableScrollWheelZoom();    //启用滚轮放大缩小
+        //添加一个marker
+        marker = new BMap.Marker(point,{icon:carIcon});
+        map.addOverlay(marker);
+
+    },200);
+
+    function changeMarkerPosition () {
+     //  var p= getCurrentPosition().toString().split(",");
+        var p = [];
+        p = getCurrentPosition();
+        setTimeout(function () {
+            //       的饿到了最新的坐标点
+            point = new BMap.Point(p[0], p[1]);
+
+            marker = new BMap.Marker(point,{icon:carIcon});
+
+            map.clearOverlays();//在地图上清除掉所有的覆盖物。
+            map.addOverlay(marker);
+            marker.setAnimation(BMAP_ANIMATION_BOUNCE);//给marker设置动画
+            console.log("maker的位置"+marker.getPosition().lng+"  "+marker.getPosition().lat);
+        },500);//此暂停放噶目前不得已而位置，带我日后掌握回调函数再战
+
+    }
+
+</script>
+</html>
+
